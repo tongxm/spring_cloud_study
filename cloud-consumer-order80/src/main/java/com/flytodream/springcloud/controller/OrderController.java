@@ -1,10 +1,12 @@
 package com.flytodream.springcloud.controller;
 
 
+import brave.Tracer;
 import com.flytodream.springcloud.lb.LoadBalancer;
 import com.flytodream.springcloud.entities.CommonResult;
 import com.flytodream.springcloud.entities.Payment;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,9 @@ public class OrderController
 
     public static final String PAYMENT_URL = "http://CLOUD-PAYMENT-SERVICE";
 
+    @Autowired
+    private Tracer tracer;
+
     @Resource
     private RestTemplate restTemplate;
 
@@ -46,6 +51,7 @@ public class OrderController
     @GetMapping("/consumer/payment/get/{id}")
     public CommonResult<Payment> getPayment(@PathVariable("id") Long id)
     {
+        tracer.currentSpan().tag("start-trace","开始链路追踪");
         return restTemplate.getForObject(PAYMENT_URL+"/payment/get/"+id,CommonResult.class);
     }
 

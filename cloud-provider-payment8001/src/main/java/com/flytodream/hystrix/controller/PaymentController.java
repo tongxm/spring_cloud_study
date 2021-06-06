@@ -1,10 +1,14 @@
 package com.flytodream.hystrix.controller;
 
 
+import brave.Span;
+import brave.Tracer;
+import brave.propagation.TraceContext;
 import com.flytodream.hystrix.service.PaymentService;
 import com.flytodream.springcloud.entities.CommonResult;
 import com.flytodream.springcloud.entities.Payment;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,9 @@ public class PaymentController
 
     @Value("${server.port}")
     private String serverPort;
+    
+    @Autowired
+    private Tracer tracer;
 
 
     @PostMapping(value = "/payment/create")
@@ -46,6 +53,9 @@ public class PaymentController
 
         if(payment != null)
         {
+            Span span = tracer.currentSpan();
+            TraceContext context = span.context();
+            span.tag("stop-tracer","链路结束返回");
             return new CommonResult(200,"查询成功,serverPort:  "+serverPort,payment);
         }else{
             return new CommonResult(444,"没有对应记录,查询ID: "+id,null);
